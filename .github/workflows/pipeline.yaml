@@ -14,8 +14,8 @@ jobs:
         run: |
           echo "${{secrets.secret_key}}" > Deva_key.pem
           chmod 400 Deva_key.pem
-                - name: cp app.py
-       run: scp -o StrictHostKeyChecking=no -i Deva_key.pem app.py ec2-user@13.206.108.145:/home/ec2-user/
+      - name: cp app.py
+        run: scp -o StrictHostKeyChecking=no -i Deva_key.pem app.py ec2-user@13.206.108.145:/home/ec2-user/
       - name: cp req.txt
         run: scp -o StrictHostKeyChecking=no -i Deva_key.pem requirements.txt ec2-user@13.206.108.145:/home/ec2-user/ 
       - name: run app
