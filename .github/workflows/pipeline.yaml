@@ -1,22 +1,32 @@
-name: Deva-pipeline
-on: workflow_dispatch
+name: Counter-App-Pipeline
+
+on:
+  workflow_dispatch
 
 jobs:
-  build-jobs:
+  deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v6
-        with:
-          ref: main
 
-      - name: get pem file
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create PEM
         run: |
-          echo "${{secrets.secret_key}}" > Deva_key.pem
+          echo "${{ secrets.secret_key }}" > Deva_key.pem
           chmod 400 Deva_key.pem
-      - name: cp app.py
-        run: scp -o StrictHostKeyChecking=no -i Deva_key.pem app.py ec2-user@13.206.108.145:/home/ec2-user/
-      - name: cp req.txt
-        run: scp -o StrictHostKeyChecking=no -i Deva_key.pem requirements.txt ec2-user@13.206.108.145:/home/ec2-user/ 
-      - name: run app
-        run: ssh -o StrictHostKeyChecking=no -i Deva_key.pem ec2-user@13.206.108.145 "cd /home/ec2-user && python3 -m venv venv && source venv/bin/activate && pip3 install -r requirements.txt && python3 app.py"
+
+      - name: Copy files
+        run: |
+          scp -o StrictHostKeyChecking=no -i Deva_key.pem app.py ec2-user@13.235.99.166:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i Deva_key.pem requirements.txt ec2-user@13.235.99.166:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i Deva_key.pem Dockerfile ec2-user@13.235.99.166:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i Deva_key.pem count.txt ec2-user@13.235.99.166:/home/ec2-user/
+
+      - name: Deploy Docker
+        run: |
+          ssh -o StrictHostKeyChecking=no -i Deva_key.pem ec2-user@13.235.99.166 "
+          sudo docker stop counter-app || true &&
+          sudo docker rm counter-app || true &&
+          sudo docker build -t counter-app /home/ec2-user &&
+          sudo docker run -d -p 5001:5000 --name counter-app counter-app
+          "
